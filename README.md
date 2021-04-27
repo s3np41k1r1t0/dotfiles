@@ -16,6 +16,6 @@
 
 ## TODOS:
 - Migrate neovim config to lua
-- Make a decent enough polybar
+- Make a decent polybar
 
 From Trancoso City to the world
