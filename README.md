@@ -15,6 +15,5 @@
 ## TODOS:
 - Migrate neovim config to lua
 - Make a decent enough polybar
-- Add corners to picom
 
 From Trancoso City to the world
