@@ -253,7 +253,7 @@ set $white #ffffff
 #start of bar section
 bar {
     position bottom
-    status_command i3blocks -c ~/.config/i3/i3blocks.conf
+    status_command i3blocks -c ~/.i3/i3blocks.conf
     colors {
         # bar background color
         background $bg
