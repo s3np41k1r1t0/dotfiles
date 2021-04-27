@@ -8,11 +8,12 @@
 
 ![](screenshots/scr1.png)
 
+![](screenshots/scr5.png)
+
 ![](screenshots/scr2.png)
 
 ![](screenshots/scr4.png)
 
-![](screenshots/scr5.png)
 
 ## TODOS:
 - Migrate neovim config to lua
