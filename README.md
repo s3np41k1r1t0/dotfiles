@@ -2,11 +2,15 @@
 
 ## Screenshots
 
-![](./screenshot/scr3.png)
-![](./screenshot/scr1.png)
-![](./screenshot/scr2.png)
-![](./screenshot/scr4.png)
-![](./screenshot/scr5.png)
+![](screenshot/scr3.png)
+
+![](screenshot/scr1.png)
+
+![](screenshot/scr2.png)
+
+![](screenshot/scr4.png)
+
+![](screenshot/scr5.png)
 
 ## TODOS:
 - Migrate neovim config to lua
