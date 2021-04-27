@@ -15,9 +15,9 @@ default_floating_border normal
 hide_edge_borders none
 
 # change borders
-bindsym $mod+u border none
-bindsym $mod+y border pixel 1
-bindsym $mod+n border normal
+#bindsym $mod+u border none
+#bindsym $mod+y border pixel 1
+#bindsym $mod+n border normal
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -33,9 +33,15 @@ bindsym $mod+Return exec alacritty
 bindsym $mod+Shift+q kill
 
 # start program launcher
-bindsym $mod+d exec --no-startup-id rofi -show run -theme theme
-bindsym $mod+p exec import png:- | xclip -selection clipboard -t image/png
+# TODO change rofi theme to something more groovboxy
+bindsym $mod+d exec --no-startup-id rofi -show run -theme onedark
+bindsym $mod+Shift+w exec --no-startup-id rofi -show window -theme onedark
+bindsym $mod+t exec --no-startup-id rofi -show ssh -theme onedark
+#bindsym $mod+Shift+p exec import png:- > ~/screenshot.png 
 bindsym $mod+Ctrl+m exec pavucontrol
+
+bindsym $mod+p exec setxkbmap pt
+bindsym $mod+u exec setxkbmap us
 
 ################################################################################################
 
@@ -45,6 +51,7 @@ bindsym $mod+Ctrl+x --release exec --no-startup-id xkill
 
 #exec_always --no-startup-id $HOME/bin/polybar.sh
 exec --no-startup-id nitrogen --restore
+exec --no-startup-id picom -b
 exec pulseaudio -D
 
 focus_follows_mouse yes
@@ -79,8 +86,8 @@ bindsym $mod+b workspace back_and_forth
 bindsym $mod+Shift+b move container to workspace back_and_forth; workspace back_and_forth
 
 # split orientation
-bindsym $mod+c splht h;exec notify-send 'tile horizontally'
-bindsym $mod+v split v;exec notify-send 'tile vertically'
+bindsym $mod+c split h
+bindsym $mod+v split v
 bindsym $mod+q split toggle
 
 # toggle fullscreen mode for the focused container
@@ -238,24 +245,25 @@ set $green #98971a
 set $yellow #d79921
 set $blue #458588
 set $purple #b16286
-set $aqua #689d68
+set $darkpurple #8f36ac 
 set $gray #a89984
 set $darkgray #1d2021
+set $white #ffffff
 
 #start of bar section
 bar {
     position bottom
-    status_command i3blocks #-c ~/.config/i3/i3blocks.conf
+    status_command i3blocks -c ~/.config/i3/i3blocks.conf
     colors {
         # bar background color
         background $bg
         # text color used for blocks that do not have a color specified.
-        statusline $yellow
+        statusline $gray
         # workspaces section            
         #                    border  backgr. text
-        focused_workspace    $aqua $aqua $darkgray
-        inactive_workspace   $darkgray $darkgray $yellow
-        active_workspace     $darkgray $darkgray $yellow
+        focused_workspace    $gray $gray $darkgray
+        inactive_workspace   $darkgray $darkgray $gray
+        active_workspace     $darkgray $darkgray $gray
         urgent_workspace     $red $red $bg
     }
 }
@@ -265,9 +273,9 @@ bar {
 
 # green gruvbox
 # class                 border|backgr|text|indicator|child_border
-client.focused          $green $green $darkgray $purple $darkgray
-client.focused_inactive $darkgray $darkgray $yellow $purple $darkgray
-client.unfocused        $darkgray $darkgray $yellow $purple $darkgray
+client.focused          $darkpurple $darkgray $gray $purple $darkgray
+client.focused_inactive $darkgray $darkgray $gray $purple $darkgray
+client.unfocused        $darkgray $darkgray $gray $purple $darkgray
 client.urgent           $red $red $white $red $red
 #end of window title bars & borders section
 
@@ -290,9 +298,12 @@ gaps outer -2
 # Smart gaps (gaps used if only more than one container on the workspace)
 smart_gaps on
 
+
 # Smart borders (draw borders around container only if it is not the only container on this workspace) 
 # on|no_gaps (on=always activate and no_gaps=only activate if the gap size to the edge of the screen is 0)
 smart_borders on
+
+
 
 # Press $mod+Shift+g to enter the gap mode. Choose o or i for modifying outer/inner gaps. Press one of + / - (in-/decrement for current workspace) or 0 (remove gaps for current workspace). If you also press Shift with these keys, the change will be global for all workspaces.
 set $mode_gaps Gaps: (o) outer, (i) inner

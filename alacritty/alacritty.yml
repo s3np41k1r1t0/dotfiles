@@ -229,6 +229,12 @@ live_config_reload: true
 #   program: /bin/bash
 #   args:
 #     - --login
+shell:
+    program: /usr/bin/tmux
+    args:
+        - -l
+        - -c
+        - "tmux"
  
 # Key bindings
 #
