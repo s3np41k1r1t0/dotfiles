@@ -2,6 +2,8 @@
 
 ## Screenshots
 
+![](screenshots/scr6.png)
+
 ![](screenshots/scr3.png)
 
 ![](screenshots/scr1.png)
