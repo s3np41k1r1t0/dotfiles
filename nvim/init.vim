@@ -2,15 +2,11 @@ if !exists("g:vscode")
   call plug#begin('~/.local/share/nvim/plugged')
   Plug 'scrooloose/nerdtree'
   Plug 'machakann/vim-highlightedyank'
+  Plug 'drewtempelmeyer/palenight.vim'
+  Plug 'neoclide/coc.nvim', {'branch': 'release'}
   Plug 'junegunn/fzf.vim'
   Plug 'junegunn/fzf'
-  Plug 'petRUShka/vim-sage'
-  Plug 'neovim/nvim-lspconfig'
-  Plug 'nvim-lua/completion-nvim'
-  Plug 'tpope/vim-fugitive'
-  Plug 'morhetz/gruvbox'  
-  Plug 'drewtempelmeyer/palenight.vim'
-  Plug 'terrortylor/nvim-comment'
+  Plug 'nvim-treesitter/nvim-treesitter', { 'do': 'TSUpdate' }
   call plug#end()
 
   " general config
@@ -29,7 +25,8 @@ if !exists("g:vscode")
   colorscheme palenight
 
   set guicursor=
-  set shiftwidth=4
+  set shiftwidth=2
+  set tabstop=2
 
   set timeoutlen=500
 
@@ -45,41 +42,29 @@ if !exists("g:vscode")
   nnoremap <silent> <C-G> :NERDTreeToggle<CR>
   let NERDTreeQuitOnOpen=1
 
-  "lsp stuff
-lua << EOF
-require('nvim_comment').setup()
-local lsp = require'lspconfig'
-lsp.bashls.setup{}
---lsp.pyright.setup{}
-lsp.cmake.setup{}
-lsp.dockerls.setup{}
-lsp.jsonls.setup{}
-lsp.sqlls.setup{
-  cmd = {"sql-language-server","up","--method","stdio"}
-}
-lsp.tsserver.setup{}
-lsp.vimls.setup{}
-lsp.vuels.setup{}
-lsp.yamlls.setup{}
-lsp.ccls.setup{}
-lsp.groovyls.setup{
-    cmd = { "java", "-jar", "/home/s3np41k1r1t0/.builds/groovy-language-server/build/libs/groovy-language-server-all.jar" },
-}
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-lsp.rust_analyzer.setup{}
+  lua << EOF
+  require'nvim-treesitter.configs'.setup {
+    -- A list of parser names, or "all"
+    ensure_installed = { "c", "lua", "cpp" },
+    -- Install parsers synchronously (only applied to `ensure_installed`)
+    sync_install = false,
+    -- List of parsers to ignore installing (for "all")
+    ignore_install = { "javascript" },
+    highlight = {
+    enable = true,
+    disable = {},
+    additional_vim_regex_highlighting = false,
+    },
+  }
+
 EOF
 
-  "autocomplete
-  inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-  inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-  let g:completion_enable_auto_popup = 1
-  set completeopt=longest,menuone,noinsert,noselect
-  autocmd BufEnter * lua require'completion'.on_attach()
+  nnoremap <silent> <expr> <C-F> (len(system("git rev-parse")) ? ":Files" : ":GFiles")."\<CR>"
 
-  cnoreabbrev ct CommentToggle
 endif
 
-set mouse=a
+
+
 set clipboard=unnamedplus
 set number
 set relativenumber
