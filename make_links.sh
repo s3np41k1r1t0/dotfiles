@@ -3,12 +3,6 @@
 
 HOME=/home/$USER
 
-case $1 in
-	"docker")
-		HOME=/root
-		;;
-esac
-
 mkdir -p $HOME/.config/nvim
 ln -s `pwd`/nvim/init.vim $HOME/.config/nvim/init.vim 
 ln -s `pwd`/nvim/coc-settings.json $HOME/.config/nvim/coc-settings.json 
