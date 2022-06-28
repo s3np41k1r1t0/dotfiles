@@ -3,6 +3,8 @@ if !exists("g:vscode")
   Plug 'scrooloose/nerdtree'
   Plug 'machakann/vim-highlightedyank'
   Plug 'drewtempelmeyer/palenight.vim'
+  Plug 'drewtempelmeyer/palenight.vim'
+	Plug 'gruvbox-community/gruvbox'
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
   Plug 'junegunn/fzf.vim'
   Plug 'junegunn/fzf'
@@ -13,7 +15,7 @@ if !exists("g:vscode")
   set splitright
   set splitbelow
 
-  set mouse=a
+  " set mouse=a
   set clipboard=unnamedplus
   set number
   set relativenumber
