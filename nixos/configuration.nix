@@ -4,10 +4,17 @@
 
 { config, pkgs, ... }:
 
-let asusctl = pkgs.callPackage ./asusctl.nix {};
-
+let
+  # asusctl = pkgs.callPackage ./asusctl.nix {};
+  nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
+    export __NV_PRIME_RENDER_OFFLOAD=1
+    export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    export __VK_LAYER_NV_optimus=NVIDIA_only
+    exec "$@"
+  '';
+  unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
 in
-
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -18,7 +25,8 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
-  boot.kernelPackages = pkgs.linuxPackages_5_17;
+  boot.kernelPackages = pkgs.linuxPackages_5_19;
+  # boot.kernelParams = [ "mem_sleep_default=deep" ];
   # Not working :(
   # boot.extraModulePackages = with config.boot.kernelPackages; [ wireguard ];
 
@@ -27,19 +35,18 @@ in
     "/crypto_keyfile.bin" = null;
   };
 
-  # Enable swap on luks
-  boot.initrd.luks.devices."luks-956162ae-5b61-4551-a762-1af3a449bcb0".device = "/dev/disk/by-uuid/956162ae-5b61-4551-a762-1af3a449bcb0";
-  boot.initrd.luks.devices."luks-956162ae-5b61-4551-a762-1af3a449bcb0".keyFile = "/crypto_keyfile.bin";
-
-  networking.hostName = "lynx"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+  
+  networking = {
+    hostName = "lynx";
+    networkmanager.enable = true;
+    firewall.allowedTCPPorts = [ 57621 ];
+    nameservers = [ "1.1.1.1" ];
+    # networkmanager.dns = "none";
+    # If using dhcpcd:
+    dhcpcd.extraConfig = "nohook resolv.conf";
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/Lisbon";
@@ -59,11 +66,52 @@ in
     LC_TIME = "pt_PT.utf8";
   };
 
+  services.pcscd.enable = true;
+
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.hplipWithPlugin ];
+  };
+
+  services.power-profiles-daemon.enable = false;
+  services.tlp = {
+    enable = true;
+    settings = {
+      CPU_SCALING_GOVERNOR_ON_BAT="schedutil";
+      CPU_SCALING_GOVERNOR_ON_AC="performance";
+
+      STOP_CHARGE_THRESH_BAT0=60;
+
+      CPU_BOOST_ON_AC=0;
+      CPU_BOOST_ON_BAT=0;
+    };
+  };
+
   environment.pathsToLink = [ "./libexec" ];
 
-  # Configure keymap in X11
+  hardware.opengl.enable = true;
+
+  hardware.nvidia.modesetting.enable = true;
+  hardware.nvidia.prime = {
+    offload.enable = true;
+
+    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+    amdgpuBusId = "PCI:4:0:0";
+
+    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+    nvidiaBusId = "PCI:1:0:0";
+  };
+
+  console.useXkbConfig = true;
   services.xserver = {
     enable = true;
+
+    libinput = {
+      enable = true;
+      touchpad.naturalScrolling = false;
+    };
+
+    videoDrivers = [ "nvidia" "amdgpu" ];
     
     displayManager.gdm = {
   	enable = true;
@@ -71,27 +119,31 @@ in
 
     windowManager.i3 = {
     	enable = true;
-	package = pkgs.i3-gaps;
+			package = pkgs.i3-gaps;
        	extraPackages = with pkgs; [
-	    dmenu #application launcher most people use
-            i3status # gives you the default i3 status bar
-            i3lock #default i3 screen locker
-            i3blocks #if you are planning on using i3blocks over i3status
+	    xclip
+	    rofi
+	    dunst
+            i3status
+            i3lock
+	    xss-lock
+            i3blocks
+	    ffmpeg
+	    xorg.xbacklight
+	    brightnessctl
+	    pavucontrol
+	    pamixer
+	    flameshot
      	];
     };
-
-    desktopManager.xterm.enable = true;
 
     desktopManager.gnome = {
     	enable = true;
     };
 
     layout = "us";
-    xkbOptions = "caps:escape";
+    xkbOptions = "caps:escape,altwin:swap_lalt_lwin";
   };
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
 
   # Enable sound with pipewire.
   sound.enable = true;
@@ -103,7 +155,7 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
+    # jack.enable = true;
 
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
@@ -114,34 +166,60 @@ in
   users.users.s3np41k1r1t0 = {
     isNormalUser = true;
     description = "s3np41k1r1t0";
-    extraGroups = [ "networkmanager" "wheel" "libvirtd" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "libvirtd" "docker" "adbusers" ];
     shell = pkgs.zsh;
   };
 
   virtualisation.libvirtd.enable = true;
+
+  virtualisation.virtualbox.host = {
+    enable = true;
+    enableExtensionPack = true;
+  };
+
+  users.extraGroups.vboxusers.members = [ "s3np41k1r1t0" ];
+
   virtualisation.docker.enable = true;
+
   programs.dconf.enable = true;
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  programs.adb.enable = true;
 
   environment.systemPackages = with pkgs; [
-    neovim 
-    vim
-    wget
-    git
-    tmux
-    cvs
-    neofetch
-    htop
     alacritty
-    virt-manager
     bintools
     binutils
-    usbutils
+    cvs
+    docker-compose
+    fzf
+    git
+    htop
+    neofetch
+    neovim 
+    tmux
     unzip
+    usbutils
+    vim
+    virt-manager
+    wget
+    kitty
+    gdb
 
-    discord
+    picom
+    nitrogen
+    scrot
+    ghidra
+
+    auto-cpufreq
+
+    unstable.discord
+    spotify
+
+    # jdk
+    # jdk8
+    jdk11
+    # jdk17
+    maven
 
     google-chrome
     google-chrome-dev
@@ -149,7 +227,6 @@ in
     bitwarden
 
     gcc
-    ccls
     cmake
     gnumake
     rustc
@@ -157,71 +234,41 @@ in
     cargo
     python3Full
     pypy3
+    jetbrains.idea-ultimate
 
     flex
     bison
     yasm
 
+    vscode
     nodejs-16_x
 
     gnome3.gnome-tweaks
-    gnomeExtensions.asusctl-gex
-    lutris
+    steam-run
 
-    asusctl
+    z3
+
+    ccid
+    wireshark
+
+    go
+
+    nvidia-offload
   ];
 
-  systemd.services.asusd = {
-     enable = true;
-     description = "ASUS Notebook Control";
-     unitConfig = {
-       StartLimitInterval = "200";
-       StartLimitBurst = "2";
-       Before = "multi-user.target";
-     };
-     environment = {
-       IS_SERVICE = "1";
-     };
-     serviceConfig = {
-        Type = "dbus";
-        ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
-        ExecStart = "${asusctl}/bin/asusd";
-        Restart = "on-failure"; 
-	# Restart = "always";
-        RestartSec = "1";
-        BusName = "org.asuslinux.Daemon";
-        SELinuxContext = "system_u:system_r:unconfined_t:s0";
-     };
-     wantedBy = [ "multi-user.target" ];
-  };
-
-  systemd.user.services.asusd-user = {
-     enable = true;
-     description = "ASUS User Daemon";
-     unitConfig = {
-       startLimitInterval = "200";
-       startLimitBurst = "2";
-     };
-     serviceConfig = {
-        Type = "simple";
-        ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
-        ExecStart = "${asusctl}/bin/asusd";
-        Restart = "on-failure";
-        RestartSec = 1;
-     };
-     wantedBy = [ "default.target" ];
-  };
+  # make NetworkManager not kill itself
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   programs.zsh = {
     enable = true;
     ohMyZsh = {
-	enable = true;
-	plugins = [ "git" "docker" ];
-	theme = "robbyrussell";
+			enable = true;
+			plugins = [ "git" "docker" ];
+			theme = "robbyrussell";
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 57621 ];
+  fonts.fonts = with pkgs; [ meslo-lg iosevka ];
 
   system.stateVersion = "22.05"; # Did you read the comment?
 
