@@ -1,0 +1,13 @@
+#!/bin/sh
+
+DEVICES=`nmcli -t -f GENERAL.DEVICE -m tabular -c no d show`
+
+if [[ `echo $DEVICES | grep enp` != '' ]] 
+then
+	echo "Wired"
+elif [[ `nmcli -t -m multiline -m tabular -c no c show --active | grep wlp` != '' ]] 
+then
+	echo `nmcli -t -m multiline -m tabular -c no c show --active | grep wlp | head -n 1 | cut -d ':' -f1`
+else
+	echo "Disconnected"
+fi

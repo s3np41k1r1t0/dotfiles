@@ -1,0 +1,6 @@
+#!/bin/sh
+
+CUR=`brightnessctl --device 'amdgpu_bl1' get`
+MAX=`brightnessctl --device 'amdgpu_bl1' max`
+
+python -c "print($CUR*100//$MAX, end='%\n')"

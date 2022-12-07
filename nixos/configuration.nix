@@ -1,11 +1,6 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
 
 let
-  # asusctl = pkgs.callPackage ./asusctl.nix {};
   nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
     export __NV_PRIME_RENDER_OFFLOAD=1
     export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
@@ -13,11 +8,10 @@ let
     export __VK_LAYER_NV_optimus=NVIDIA_only
     exec "$@"
   '';
-  unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
 in
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
       ./hardware-configuration.nix
     ];
 
@@ -25,15 +19,21 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
-  boot.kernelPackages = pkgs.linuxPackages_5_19;
-  # boot.kernelParams = [ "mem_sleep_default=deep" ];
-  # Not working :(
-  # boot.extraModulePackages = with config.boot.kernelPackages; [ wireguard ];
+  boot.kernelPackages = pkgs.linuxPackages_6_0;
 
   # Setup keyfile
   boot.initrd.secrets = {
     "/crypto_keyfile.bin" = null;
   };
+
+  boot.initrd.availableKernelModules = [
+    "aesni_intel"
+    "cryptd"
+  ];
+
+  # Enable swap on luks
+  boot.initrd.luks.devices."luks-956162ae-5b61-4551-a762-1af3a449bcb0".device = "/dev/disk/by-uuid/956162ae-5b61-4551-a762-1af3a449bcb0";
+  boot.initrd.luks.devices."luks-956162ae-5b61-4551-a762-1af3a449bcb0".keyFile = "/crypto_keyfile.bin";
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -67,11 +67,6 @@ in
   };
 
   services.pcscd.enable = true;
-
-  services.printing = {
-    enable = true;
-    drivers = [ pkgs.hplipWithPlugin ];
-  };
 
   services.power-profiles-daemon.enable = false;
   services.tlp = {
@@ -114,27 +109,32 @@ in
     videoDrivers = [ "nvidia" "amdgpu" ];
     
     displayManager.gdm = {
-  	enable = true;
+      enable = true;
     };
 
     windowManager.i3 = {
     	enable = true;
-			package = pkgs.i3-gaps;
-       	extraPackages = with pkgs; [
-	    xclip
-	    rofi
-	    dunst
-            i3status
-            i3lock
-	    xss-lock
-            i3blocks
-	    ffmpeg
-	    xorg.xbacklight
-	    brightnessctl
-	    pavucontrol
-	    pamixer
-	    flameshot
-     	];
+      package = pkgs.i3-gaps;
+      extraPackages = with pkgs; [
+        brightnessctl
+        dunst
+        ffmpeg
+        flameshot
+        nitrogen
+        pamixer
+        pavucontrol
+        picom
+        rofi
+        scrot
+        xclip
+        xorg.xbacklight
+        xss-lock
+        i3blocks
+        i3lock
+        i3status
+        arandr
+        autorandr
+      ];
     };
 
     desktopManager.gnome = {
@@ -154,12 +154,6 @@ in
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    # jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -186,73 +180,72 @@ in
   programs.adb.enable = true;
 
   environment.systemPackages = with pkgs; [
+    # general utils
+    neovim 
     alacritty
     bintools
     binutils
-    cvs
-    docker-compose
+    ccid
     fzf
     git
     htop
     neofetch
-    neovim 
+    steam-run
     tmux
     unzip
+    p7zip
     usbutils
     vim
-    virt-manager
+    vscode
     wget
-    kitty
+    brave
+
+    # devops
+    ansible
+    docker-compose
+    vagrant
+    virt-manager
+    terraform
+    google-cloud-sdk
+    minikube
+    kubectl
+
+    # reverse
     gdb
-
-    picom
-    nitrogen
-    scrot
     ghidra
+    genymotion
 
-    auto-cpufreq
-
-    unstable.discord
-    spotify
-
-    # jdk
-    # jdk8
-    jdk11
-    # jdk17
-    maven
-
+    # web
+    firefox
     google-chrome
     google-chrome-dev
-    firefox
-    bitwarden
 
-    gcc
-    cmake
-    gnumake
-    rustc
-    rustup
-    cargo
-    python3Full
-    pypy3
+    # media
+    spotify
+    discord # unstable
+
+    # java
+    jdk17
     jetbrains.idea-ultimate
+    maven
 
-    flex
-    bison
-    yasm
+    # c/cpp
+    cmake
+    gcc
+    gnumake
 
-    vscode
-    nodejs-16_x
-
-    gnome3.gnome-tweaks
-    steam-run
-
+    # python
+    pypy3
+    python3Full
     z3
 
-    ccid
-    wireshark
+    # node
+    nodejs-16_x
 
+    # misc languages
     go
 
+    # laptop
     nvidia-offload
   ];
 
@@ -262,14 +255,14 @@ in
   programs.zsh = {
     enable = true;
     ohMyZsh = {
-			enable = true;
-			plugins = [ "git" "docker" ];
-			theme = "robbyrussell";
+      enable = true;
+      plugins = [ "git" "docker" ];
+      theme = "robbyrussell";
     };
   };
 
   fonts.fonts = with pkgs; [ meslo-lg iosevka ];
 
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "22.11"; # Did you read the comment?
 
 }

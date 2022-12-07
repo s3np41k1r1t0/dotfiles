@@ -11,24 +11,16 @@ if !exists("g:vscode")
   call plug#end()
 
   " general config
-  set splitright
-  set splitbelow
-
-  " set mouse=a
-  " set clipboard=unnamedplus
-  set number
-  set relativenumber
-
   syntax enable
-  set background=dark
-  set termguicolors
-  set background=dark
   colorscheme palenight
 
+  set termguicolors
+  set background=dark
+  set splitright
+  set splitbelow
   set guicursor=
   set shiftwidth=2
   set tabstop=2
-
   set timeoutlen=500
 
   "disables useless status bar
@@ -61,10 +53,7 @@ if !exists("g:vscode")
 EOF
 
   nnoremap <silent> <expr> <C-F> (len(system("git rev-parse")) ? ":Files" : ":GFiles")."\<CR>"
-
 endif
-
-
 
 set clipboard=unnamedplus
 set number

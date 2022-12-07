@@ -1,0 +1,6 @@
+#!/bin/sh
+
+CUR=`brightnessctl --device 'asus::kbd_backlight' get`
+MAX=`brightnessctl --device 'asus::kbd_backlight' max`
+
+python -c "print($CUR*100//$MAX,end='%\n')"
