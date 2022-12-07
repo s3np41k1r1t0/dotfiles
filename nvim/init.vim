@@ -35,22 +35,22 @@ if !exists("g:vscode")
   nnoremap <silent> <C-G> :NERDTreeToggle<CR>
   let NERDTreeQuitOnOpen=1
 
-  lua << EOF
-  require'nvim-treesitter.configs'.setup {
-    -- A list of parser names, or "all"
-    ensure_installed = { "c", "lua", "cpp" },
-    -- Install parsers synchronously (only applied to `ensure_installed`)
-    sync_install = false,
-    -- List of parsers to ignore installing (for "all")
-    ignore_install = { "javascript" },
-    highlight = {
-    enable = true,
-    disable = {},
-    additional_vim_regex_highlighting = false,
-    },
-  }
-
-EOF
+"   lua << EOF
+"   require'nvim-treesitter.configs'.setup {
+"     -- A list of parser names, or "all"
+"     ensure_installed = { "c", "lua", "cpp" },
+"     -- Install parsers synchronously (only applied to `ensure_installed`)
+"     sync_install = false,
+"     -- List of parsers to ignore installing (for "all")
+"     ignore_install = { "javascript" },
+"     highlight = {
+"     enable = true,
+"     disable = {},
+"     additional_vim_regex_highlighting = false,
+"     },
+"   }
+" 
+" EOF
 
   nnoremap <silent> <expr> <C-F> (len(system("git rev-parse")) ? ":Files" : ":GFiles")."\<CR>"
 endif
